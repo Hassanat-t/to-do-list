@@ -1,27 +1,24 @@
-import React from 'react'
+import { COPY } from '../types/copy'
+import type { Task } from '../types/task'
+import TaskItem from './TaskItem'
 import { useTaskStore } from '../store/taskStore'
 
 interface TaskListProps {
-  // no props needed; uses store directly
+  onRemove: (task: Task) => void
 }
 
-export const TaskList: React.FC<TaskListProps> = () => {
-  const { tasks } = useTaskStore()
+export default function TaskList({ onRemove }: TaskListProps) {
+  const tasks = useTaskStore((state) => state.tasks)
 
-  // Debug: always render a visible placeholder
+  if (tasks.length === 0) {
+    return <p className="task-list__empty">{COPY.emptyState}</p>
+  }
+
   return (
-    <div
-      style={{
-        padding: '2rem',
-        textAlign: 'center',
-        color: '#111827',
-        background: '#F9FAFB',
-        minHeight: '100px',
-        border: '1px solid #D1D5DB',
-        borderRadius: '0.375rem',
-      }}
-    >
-      DEBUG TaskList running. Tasks count = {tasks.length}
-    </div>
+    <ul className="task-list" aria-label={COPY.listLabel}>
+      {tasks.map((task) => (
+        <TaskItem key={task.id} task={task} onRemove={onRemove} />
+      ))}
+    </ul>
   )
 }

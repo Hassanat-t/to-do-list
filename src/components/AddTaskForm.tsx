@@ -1,63 +1,68 @@
-import React, { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
+
+import { COPY, PRIORITY_LABELS } from '../types/copy'
+import type { Priority } from '../types/task'
+import { DEFAULT_PRIORITY, PRIORITIES, isPriority } from '../types/task'
 import { useTaskStore } from '../store/taskStore'
 
-interface AddTaskFormProps {
-  onTaskAdded: (task: { id: string; title: string; priority: string }) => void
-}
-
-export const AddTaskForm: React.FC<AddTaskFormProps> = ({ onTaskAdded }) => {
+export default function AddTaskForm() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState('')
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium')
+  const [priority, setPriority] = useState<Priority>(DEFAULT_PRIORITY)
+  const [bounce, setBounce] = useState(false)
+  const addTask = useTaskStore((state) => state.addTask)
 
-  const { addTask: storeAddTask } = useTaskStore()
+  // taste.md: focus the input on page load.
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (title.trim()) {
-        const task = { id: crypto.randomUUID(), title: title.trim(), priority }
-        storeAddTask(title.trim(), priority)
-        onTaskAdded(task)
-        setTitle('')
-        setPriority('medium')
-        inputRef.current?.focus()
-      }
-    }
+  // Enter in the input submits the form, as does the Add button.
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmed = title.trim()
+    if (!trimmed) return
+    addTask(trimmed, priority)
+    setTitle('')
+    setPriority(DEFAULT_PRIORITY)
+    setBounce(true)
+    inputRef.current?.focus()
+  }
+
+  const handlePriorityChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    if (isPriority(event.target.value)) setPriority(event.target.value)
   }
 
   return (
-    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+    <form className="add-task" onSubmit={handleSubmit}>
+      <label htmlFor="new-task" className="sr-only">
+        {COPY.inputLabel}
+      </label>
       <input
+        id="new-task"
         ref={inputRef}
         type="text"
+        className={`input add-task__input${bounce ? ' is-bouncing' : ''}`}
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="What needs to be done?"
-        onKeyDown={handleKeyDown}
-        style={{
-          flex: '1',
-          padding: '0.5rem',
-          border: '1px solid #D1D5DB',
-          borderRadius: '0.375rem',
-          fontSize: '1rem',
-        }}
+        onChange={(event) => setTitle(event.target.value)}
+        onAnimationEnd={() => setBounce(false)}
+        placeholder={COPY.inputPlaceholder}
+        autoComplete="off"
       />
-      <select
-        value={priority}
-        onChange={(e) => setPriority(e.target.value as any)}
-        style={{
-          padding: '0.5rem 0.75rem',
-          border: '1px solid #D1D5DB',
-          borderRadius: '0.375rem',
-          background: 'white',
-          minWidth: '80px',
-        }}
-      >
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
+      <label htmlFor="new-task-priority" className="sr-only">
+        {COPY.priorityLabel}
+      </label>
+      <select id="new-task-priority" className="input add-task__priority" value={priority} onChange={handlePriorityChange}>
+        {PRIORITIES.map((value) => (
+          <option key={value} value={value}>
+            {PRIORITY_LABELS[value]}
+          </option>
+        ))}
       </select>
-    </div>
+      <button type="submit" className="button button--primary" disabled={!title.trim()}>
+        {COPY.addButton}
+      </button>
+    </form>
   )
 }

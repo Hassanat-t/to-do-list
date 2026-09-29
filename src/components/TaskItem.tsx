@@ -1,96 +1,40 @@
-import React from 'react'
+import { COPY, PRIORITY_LABELS } from '../types/copy'
+import type { Task } from '../types/task'
 import { useTaskStore } from '../store/taskStore'
 
 interface TaskItemProps {
-  task: {
-    id: string
-    title: string
-    completed: boolean
-    priority: 'low' | 'medium' | 'high'
-  }
+  task: Task
+  onRemove: (task: Task) => void
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
-  const { toggleTask, removeTask } = useTaskStore()
+export default function TaskItem({ task, onRemove }: TaskItemProps) {
+  const toggleTask = useTaskStore((state) => state.toggleTask)
+  const checkboxId = `task-${task.id}`
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0.5rem',
-        borderRadius: '0.375rem',
-        marginBottom: '0.5rem',
-        background: 'white',
-        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-        transition: 'background 0.2s',
-        cursor: 'pointer',
-      }}
-    >
+    <li className={`task${task.completed ? ' task--completed' : ''}`}>
       <input
+        id={checkboxId}
         type="checkbox"
+        className="task__checkbox"
         checked={task.completed}
         onChange={() => toggleTask(task.id)}
-        style={{
-          marginRight: '0.75rem',
-          transform: 'scale(1.2)',
-        }}
+        aria-label={COPY.toggleLabel(task.title, task.completed)}
       />
-      <span
-        style={{
-          textDecoration: task.completed ? 'line-through' : 'none',
-          color: task.completed ? '#9CA3AF' : '#111827',
-          fontWeight: task.completed ? 'normal' : 'bold',
-          flex: '1',
-        }}
-      >
-        {task.title}
-      </span>
-
-      {/* Priority chip */}
-      <span
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.25rem',
-          padding: '0.25rem 0.5rem',
-          borderRadius: '0.125rem',
-          fontSize: '0.75rem',
-          fontWeight: '500',
-          marginLeft: '0.5rem',
-        }}
-      >
-        {/* Color mapping per priority */}
-        {task.priority === 'high'
-          ? { style: { background: '#F87171', color: 'white' } }
-          : task.priority === 'medium'
-          ? { style: { background: '#FBBF24', color: '#111827' } }
-          : { style: { background: '#34D399', color: 'white' } }
-        }{task.priority}
-      </span>
-
-      {/* Remove button visible on hover */}
+      <label htmlFor={checkboxId} className="task__body">
+        <span className="task__title">{task.title}</span>
+        {/* taste.md: colour/strike-through must not be the only signal of state. */}
+        {task.completed && <span className="task__status">{COPY.completed}</span>}
+      </label>
+      <span className={`chip chip--${task.priority}`}>{PRIORITY_LABELS[task.priority]}</span>
       <button
-        style={{
-          opacity: 0,
-          transition: 'opacity 0.2s',
-          background: 'transparent',
-          border: 'none',
-          color: '#EF4444',
-          fontSize: '0.875rem',
-          cursor: 'pointer',
-          padding: '0',
-        }}
-        onMouseEnter={() => {
-          // we could set state to show, but for simplicity we just rely on parent hover
-        }}
-        onClick={(e) => {
-          e.stopPropagation()
-          removeTask(task.id)
-        }}
+        type="button"
+        className="task__delete"
+        onClick={() => onRemove(task)}
+        aria-label={COPY.deleteLabel(task.title)}
       >
         ✕
       </button>
-    </div>
+    </li>
   )
 }

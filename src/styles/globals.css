@@ -3,19 +3,28 @@
 /* CSS Custom Properties -- aligned with style.md and taste.md */
 :root {
   --color-primary: #3B82F6;
+  --color-primary-hover: #2563EB;
   --color-secondary: #10B981;
   --color-accent: #F59E0B;
   --color-neutral-dark: #111827;
   --color-neutral-light: #F9FAFB;
+  --color-surface: #FFFFFF;
+  --color-hover: #F3F4F6;
+  --color-border: #D1D5DB;
   --color-text-primary: #111827;
   --color-text-secondary: #6B7280;
   --color-completed: #9CA3AF;
   --color-warning: #EF4444;
 
+  --color-priority-high: #F87171;
+  --color-priority-medium: #FBBF24;
+  --color-priority-low: #34D399;
+
   --radius-default: 0.375rem;
   --radius-small: 0.125rem;
 
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-lift: 0 4px 8px rgba(0, 0, 0, 0.08);
 
   --font-base: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
@@ -23,6 +32,7 @@
   --font-size-heading2: 1.125rem;
   --font-size-heading3: 1rem;
   --font-size-body: 1rem;
+  --font-size-small: 0.875rem;
   --font-size-caption: 0.75rem;
 
   --line-height-base: 1.5;
@@ -34,6 +44,8 @@
   --spacing-4: 1.5rem; /* 24px */
   --spacing-6: 2rem; /* 32px */
   --spacing-8: 3rem; /* 48px */
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Base resets */
@@ -45,31 +57,273 @@
 
 body {
   font-family: var(--font-base);
+  font-size: var(--font-size-body);
   background-color: var(--color-neutral-light);
   color: var(--color-text-primary);
   line-height: var(--line-height-base);
 }
 
-/* Focus visible */
+/* Hide the mouse-click outline but keep the keyboard focus ring.
+   (A plain `*:focus { outline: none }` placed after :focus-visible cancelled the ring entirely.) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* Input base */
-input {
+input,
+select,
+button {
   font: inherit;
-  border: 1px solid var(--color-text-secondary);
-  border-radius: var(--radius-small);
-  padding: var(--spacing-1);
+  color: inherit;
 }
 
 button {
-  font: inherit;
   cursor: pointer;
 }
 
-/* Remove outline on regular focus (we use focus-visible) */
-*:focus {
-  outline: none;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Page ---------- */
+
+.page {
+  max-width: 24rem;
+  margin: 0 auto;
+  padding: var(--spacing-6) var(--spacing-3);
+}
+
+.page__header {
+  margin-bottom: var(--spacing-4);
+  text-align: center;
+}
+
+.page__title {
+  font-size: var(--font-size-heading1);
+  line-height: var(--line-height-heading);
+  margin-bottom: var(--spacing-2);
+}
+
+.page__tagline {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+}
+
+/* ---------- Inputs & buttons ---------- */
+
+.input {
+  padding: var(--spacing-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-default);
+  background: var(--color-surface);
+  transition: border-color 150ms var(--ease);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+}
+
+.button {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-default);
+  font-weight: 600;
+  transition: background-color 150ms var(--ease), opacity 150ms var(--ease);
+}
+
+.button--primary {
+  background: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Add task ---------- */
+
+.add-task {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+}
+
+.add-task__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-task__priority {
+  flex-shrink: 0;
+}
+
+.is-bouncing {
+  animation: bounce 250ms var(--ease);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-3px); }
+}
+
+/* ---------- Task list ---------- */
+
+.task-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.task-list__empty {
+  padding: var(--spacing-6) var(--spacing-3);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-default);
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-default);
+  box-shadow: var(--shadow-subtle);
+  transition: transform 200ms var(--ease), box-shadow 200ms var(--ease);
+  animation: task-in 200ms var(--ease);
+}
+
+.task:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+@keyframes task-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.task__checkbox {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.task__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.task__title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  transition: color 200ms var(--ease);
+}
+
+.task--completed .task__title {
+  font-weight: 400;
+  color: var(--color-completed);
+  text-decoration: line-through;
+}
+
+.task__status {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-small);
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.chip--high { background: var(--color-priority-high); }
+.chip--medium { background: var(--color-priority-medium); }
+.chip--low { background: var(--color-priority-low); }
+
+/* Delete button: revealed on hover or keyboard focus (PRD US-4). */
+.task__delete {
+  flex-shrink: 0;
+  padding: var(--spacing-1);
+  border: none;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-warning);
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 150ms var(--ease);
+}
+
+.task:hover .task__delete,
+.task:focus-within .task__delete {
+  opacity: 1;
+}
+
+/* Touch screens have no hover, so keep it visible there. */
+@media (hover: none) {
+  .task__delete {
+    opacity: 1;
+  }
+}
+
+/* ---------- Undo snackbar ---------- */
+
+.snackbar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--spacing-4);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-neutral-dark);
+  color: #FFFFFF;
+  border-radius: var(--radius-default);
+  box-shadow: var(--shadow-lift);
+  font-size: var(--font-size-small);
+  animation: task-in 200ms var(--ease);
+}
+
+.snackbar__action {
+  border: none;
+  background: transparent;
+  color: #93C5FD;
+  font-weight: 600;
+}
+
+.snackbar__action:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
