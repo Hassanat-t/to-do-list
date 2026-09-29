@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import type { Priority, Task } from '../types/task'
+import type { Priority, RemovedTask, Task } from '../types/task'
 import { DEFAULT_PRIORITY } from '../types/task'
 
 interface TaskState {
@@ -9,7 +9,8 @@ interface TaskState {
   addTask: (title: string, priority?: Priority) => void
   toggleTask: (id: string) => void
   removeTask: (id: string) => void
-  restoreTask: (task: Task, index: number) => void
+  clearCompleted: () => void
+  restoreTasks: (removed: RemovedTask[]) => void
   setTasks: (tasks: Task[]) => void
 }
 
@@ -48,11 +49,18 @@ export const useTaskStore = create<TaskState>()(
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== id),
         })),
-      // Puts a removed task back where it was (used by the undo snackbar).
-      restoreTask: (task, index) =>
+      clearCompleted: () =>
+        set((state) => ({
+          tasks: state.tasks.filter((task) => !task.completed),
+        })),
+      // Puts removed tasks back at their original positions (used by the undo snackbar).
+      // Inserting in ascending index order reproduces the original ordering.
+      restoreTasks: (removed) =>
         set((state) => {
           const tasks = [...state.tasks]
-          tasks.splice(Math.min(index, tasks.length), 0, task)
+          ;[...removed]
+            .sort((a, b) => a.index - b.index)
+            .forEach(({ task, index }) => tasks.splice(Math.min(index, tasks.length), 0, task))
           return { tasks }
         }),
       setTasks: (tasks) => set({ tasks }),

@@ -18,20 +18,23 @@
   - `src/types/` – TypeScript type definitions.
   - `src/styles/` – CSS/module styles or styled-components.
 
-## UI Style
-- **Color palette** (primary):
-  - Primary: `#3B82F6` (Blue 500)
-  - Secondary: `#10B981` (Green 500)
-  - Accent: `#F59E0B` (Amber 500)
-  - Neutral dark: `#111827` (almost black)
-  - Neutral light: `#F9FAFB`
+## UI Style (dark glass theme)
+All tokens live as CSS custom properties in `src/styles/globals.css`; use the variables, not raw values.
+
+- **Color palette**:
+  - Background: `#07080C`, lit by three fixed radial glows (blue, violet, green)
+  - Glass surface: `rgba(20, 23, 32, 0.55)` + `backdrop-filter: blur(20px) saturate(160%)`, border `rgba(255,255,255,0.08)`
+  - Primary: `#3B82F6` (Blue 500) → `#8B5CF6` (Violet 500) gradient, with a soft blue glow
+  - Text primary `#F3F4F6`, secondary `#9CA3AF`, completed `#6B7280`
+  - Danger: `#F87171`
+  - Priorities: high `#F87171`, medium `#FBBF24`, low `#34D399`
 - **Typography**:
-  - Base font: `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
-  - Heading scale: `1.25rem` (h1), `1.125rem` (h2), `1rem` (h3), `0.875rem` (h4)
-  - Body: `0.875rem` line-height, `1rem` font-size.
+  - Base font: `Inter`, falling back to `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`
+  - Display (greeting): `1.75rem`, weight 700, `-0.02em` tracking
+  - Body: `1rem` / line-height `1.5`; small `0.875rem`; caption `0.75rem`
 - **Spacing** (`rem` units): `0.25` (4px), `0.5` (8px), `1` (16px), `1.5` (24px), `2` (32px), `3` (48px).
-- **Border radius**: `0.375rem` (default), `0.125rem` for small inputs.
-- **Shadows**: use `0 1px 2px rgba(0,0,0,0.05)` for subtle elevation.
+- **Border radius**: `1rem` cards, `0.75rem` task rows, pill (`999px`) for buttons, chips and segmented controls.
+- **Shadows**: glass cards use an inset top highlight plus a deep soft drop shadow (`--shadow-card`); primary actions glow (`--glow-primary`).
 
 ## Accessibility
 - Ensure all interactive elements have an accessible name (aria-label or descriptive text).

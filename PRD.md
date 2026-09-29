@@ -16,6 +16,7 @@ A minimal, beautiful, and fast task‑management app that helps individuals capt
 | **Toggle Complete** | Click checkbox to mark completed; visual strike‑through and muted text color (per taste.md). |
 | **Remove Task** | Hover to reveal delete button; confirm or undo snackbar. |
 | **LocalStorage Persistence** | Tasks survive browser refresh. |
+| **Filter & Progress** | All / Active / Done filter tabs with counts, a progress ring in the header, and "Clear completed" with undo. |
 | **No Authentication** | Single‑user, no accounts. |
 
 ## 4. Out of Scope (for MVP)
@@ -23,7 +24,7 @@ A minimal, beautiful, and fast task‑management app that helps individuals capt
 - Drag‑and‑reorder.
 - Due dates / reminders.
 - Collaboration / sharing.
-- Dark mode (initial launch light-only).
+- Light mode / theme toggle (the app ships dark-only with the glass theme).
 
 ## 5. User Stories (as GitHub issues)
 1. **US‑1**: As a user, I can see an empty task list when the app loads.
@@ -51,7 +52,7 @@ A minimal, beautiful, and fast task‑management app that helps individuals capt
 - Backend sync (Firebase or Node+Express) – architecture.md already defines the API contract.
 - Drag‑and‑reorder for custom task ordering.
 - Due dates + calendar view.
-- Dark mode toggle.
+- Light theme and theme toggle.
 - Export/import as JSON.
 
 ## 9. Definition of Done for Each Feature

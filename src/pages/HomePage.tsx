@@ -1,46 +1,66 @@
 import { useCallback, useState } from 'react'
 
 import { COPY } from '../types/copy'
-import type { Task } from '../types/task'
+import type { Filter, RemovedTask, Task } from '../types/task'
 import AddTaskForm from '../components/AddTaskForm'
+import DayHeader from '../components/DayHeader'
+import FilterBar from '../components/FilterBar'
 import TaskList from '../components/TaskList'
 import UndoSnackbar from '../components/UndoSnackbar'
 import { useTaskStore } from '../store/taskStore'
 
-interface RemovedTask {
-  task: Task
-  index: number
+interface UndoState {
+  id: number // new id per removal so the snackbar timer restarts
+  removed: RemovedTask[]
 }
 
 export default function HomePage() {
+  const tasks = useTaskStore((state) => state.tasks)
   const removeTask = useTaskStore((state) => state.removeTask)
-  const restoreTask = useTaskStore((state) => state.restoreTask)
-  const [lastRemoved, setLastRemoved] = useState<RemovedTask | null>(null)
+  const clearCompleted = useTaskStore((state) => state.clearCompleted)
+  const restoreTasks = useTaskStore((state) => state.restoreTasks)
+  const [filter, setFilter] = useState<Filter>('all')
+  const [undo, setUndo] = useState<UndoState | null>(null)
+
+  const doneCount = tasks.filter((task) => task.completed).length
+  const counts: Record<Filter, number> = {
+    all: tasks.length,
+    active: tasks.length - doneCount,
+    completed: doneCount,
+  }
+  const visibleTasks = tasks.filter((task) =>
+    filter === 'all' ? true : filter === 'completed' ? task.completed : !task.completed,
+  )
 
   const handleRemove = (task: Task) => {
-    const index = useTaskStore.getState().tasks.findIndex((t) => t.id === task.id)
+    const index = tasks.findIndex((t) => t.id === task.id)
     removeTask(task.id)
-    setLastRemoved({ task, index })
+    setUndo({ id: Date.now(), removed: [{ task, index }] })
+  }
+
+  const handleClearCompleted = () => {
+    const removed = tasks.flatMap((task, index) => (task.completed ? [{ task, index }] : []))
+    clearCompleted()
+    setUndo({ id: Date.now(), removed })
   }
 
   const handleUndo = () => {
-    if (lastRemoved) restoreTask(lastRemoved.task, lastRemoved.index)
-    setLastRemoved(null)
+    if (undo) restoreTasks(undo.removed)
+    setUndo(null)
   }
 
-  const dismiss = useCallback(() => setLastRemoved(null), [])
+  const dismiss = useCallback(() => setUndo(null), [])
 
   return (
     <main className="page">
-      <header className="page__header">
-        <h1 className="page__title">{COPY.appTitle}</h1>
-        <p className="page__tagline">{COPY.appTagline}</p>
-      </header>
-
+      <DayHeader done={doneCount} total={tasks.length} />
       <AddTaskForm />
-      <TaskList onRemove={handleRemove} />
+      <FilterBar filter={filter} counts={counts} onFilterChange={setFilter} onClearCompleted={handleClearCompleted} />
+      <TaskList tasks={visibleTasks} filter={filter} onRemove={handleRemove} />
 
-      {lastRemoved && <UndoSnackbar key={lastRemoved.task.id} onUndo={handleUndo} onDismiss={dismiss} />}
+      {undo && (
+        <UndoSnackbar key={undo.id} message={COPY.removed(undo.removed.length)} onUndo={handleUndo} onDismiss={dismiss} />
+      )}
     </main>
   )
 }
