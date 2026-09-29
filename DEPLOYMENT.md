@@ -69,7 +69,6 @@ already ignored by `.gitignore` conventions used here – do not commit it.
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "cleanUrls": true,
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [ /* security headers + cache policy */ ]
 }
@@ -78,8 +77,7 @@ already ignored by `.gitignore` conventions used here – do not commit it.
 | Key | Why it exists |
 | --- | --- |
 | `framework` / `buildCommand` / `outputDirectory` | Pins the build so it does not depend on dashboard auto-detection. |
-| `cleanUrls` | Serves `/about` instead of `/about.html` and strips the `.html` extension. |
-| `rewrites` | SPA fallback for `BrowserRouter`: deep links like `/?filter=active` or `/anything` are served `index.html` instead of a 404. Vercel evaluates **File System Routes before Rewrites**, so `dist/assets/*` files are still served directly. |
+| `rewrites` | SPA fallback for `BrowserRouter`: deep links like `/?filter=active` or `/anything` are served `index.html` instead of a 404. Vercel evaluates **File System Routes before Rewrites**, so `dist/assets/*` files are still served directly. This is the exact rewrite Vercel's own React guide documents for Vite SPAs. |
 | `/assets/(.*)` header | `Cache-Control: public, max-age=31536000, immutable` – Vite filenames are content-hashed (`index-CVajB-lx.js`), so they are safe to cache forever. |
 | `/index.html` header | `max-age=0, must-revalidate` so users always get the newest asset references. |
 | Security headers | `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` for every response. |
@@ -106,5 +104,6 @@ already ignored by `.gitignore` conventions used here – do not commit it.
 | Build fails with "Cannot find module 'react-router-dom'" | Dependencies not installed/lockfile out of sync → run `npm ci`, commit `package-lock.json`. |
 | Build fails with an engine error | Node version mismatch → `package.json` pins `engines.node` to `22.x`; keep it in a supported list (`24.x`, `22.x`, `20.x`). |
 | 404 after refreshing a sub-path | The `rewrites` entry in `vercel.json` was removed or overridden by dashboard routing rules. |
+| `ERR_TOO_MANY_REDIRECTS` / redirect loop | Do **not** add `"cleanUrls": true` next to the SPA rewrite – Vercel then redirects `/index.html` to `/` and fights the rewrite. This config intentionally omits `cleanUrls`. |
 | Old JS/CSS served after a deploy | `/assets` should only be immutable because filenames are hashed; if the hash was removed, drop the immutable header. |
 | Blank page on the deployed URL | Check the browser console for a failed `/assets/...` request; usually caused by deploying with a custom `base` path in `vite.config.ts` (this project must keep the default `/`). |
